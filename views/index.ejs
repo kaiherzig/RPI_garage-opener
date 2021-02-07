@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script
+            src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js" integrity="sha384-LtrjvnR4Twt/qOuYxE721u19sVFLVSA4hf/rRt6PrZTmiPltdZcI7q7PXQBYTKyf" crossorigin="anonymous"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        .button{
+            margin: auto;
+            margin-top: 40%;
+            width: 300px;
+            height: 300px;
+            color: white;
+            border-radius: 400px;
+            text-align: center;
+            font-size: 2em;
+            font-weight: bold;
+            padding-top: 120px;
+        }
+        .button.green {
+            background: green;
+        }
+        .button.red {
+            background: red;
+        }
+    </style>
+    <title>Garage</title>
+</head>
+
+<body class="container">
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-12">
+                <h1 align="center">Garagentor</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+
+                <div id="btn" class="button green">START</div>
+
+            </div>
+        </div>
+
+    </div>
+</body>
+
+<script>
+window.isActive = false;
+var pathArray = window.location.pathname.split('/');
+var URL = pathArray[1];
+$('#btn').click(() => {
+    if (window.isActive){
+        stopAction();
+    } else {
+        startAction();
+    }
+});
+
+const stopAction = () => {
+    $.ajax({
+        url: "/action/"+URL
+    }).done(function() {
+        window.isActive = false;
+        $('#btn').removeClass("red");
+        $('#btn').addClass("green");
+        $('#btn').html("START");
+    });
+}
+
+const startAction = () => {
+    window.isActive = true;
+    $('#btn').removeClass("green");
+    $('#btn').addClass("red");
+    $('#btn').html("STOP");
+    $.ajax({
+        url: "/action/"+URL
+    }).done(function() {
+        setTimeout(() => {
+            $('#btn').removeClass("red");
+            $('#btn').addClass("green");
+            $('#btn').html("START");
+        }, 500);
+    });
+}
+
+</script>
+
+</html>
+
+
+
