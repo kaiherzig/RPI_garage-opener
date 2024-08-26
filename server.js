@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const APIKey = "<<FillAPIKey>>"; //API Key for Opening
-const GPIOPort = 26; //GIPIO Number
+const GPIOPort = 26; //GIPIO Number on new 538 for 26 and 532 for 20
 const PrivKey = "/path/to/privkey.pem"; //Path to Priv. Kex
 const SSLCert = "/path/to/fullchain.pem"
 const port = 8000; //Port Number for Express
