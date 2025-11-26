@@ -1,0 +1,39 @@
+{
+  "name": "Garagentor Steuerung",
+  "short_name": "Garage",
+  "description": "Steuere dein Garagentor vom Smartphone",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#1a1a1a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/public/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/public/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Garagentor öffnen",
+      "short_name": "Öffnen",
+      "description": "Öffne das Garagentor direkt",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/public/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

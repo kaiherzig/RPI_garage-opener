@@ -1,0 +1,21 @@
+[Unit]
+Description=Garage Opener Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/kai/garage
+ExecStart=/usr/bin/node /home/kai/garage/server.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=garage-opener
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

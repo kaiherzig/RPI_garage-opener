@@ -1,99 +1,341 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="de">
 <head>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
-    <script
-            src="https://code.jquery.com/jquery-3.4.1.min.js"
-            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-            crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js" integrity="sha384-LtrjvnR4Twt/qOuYxE721u19sVFLVSA4hf/rRt6PrZTmiPltdZcI7q7PXQBYTKyf" crossorigin="anonymous"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Garage">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="description" content="Garagentor Steuerung">
+    
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/public/icon-192.png">
+    
+    <title>Garagentor</title>
+    
     <style>
-        .button{
-            margin: auto;
-            margin-top: 40%;
-            width: 300px;
-            height: 300px;
-            color: white;
-            border-radius: 400px;
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #1a1a1a;
+            --color-success: #22c55e;
+            --color-success-hover: #16a34a;
+            --color-active: #ef4444;
+            --color-active-hover: #dc2626;
+            --color-shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-bg: #1a1a1a;
+                --color-text: #ffffff;
+                --color-success: #22c55e;
+                --color-success-hover: #16a34a;
+                --color-active: #ef4444;
+                --color-active-hover: #dc2626;
+                --color-shadow: rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--color-bg);
+            color: var(--color-text);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            overflow: hidden;
+            transition: background-color 0.3s ease;
+        }
+
+        .container {
             text-align: center;
-            font-size: 2em;
-            font-weight: bold;
-            padding-top: 120px;
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
         }
-        .button.green {
-            background: green;
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 3rem;
+            letter-spacing: -0.5px;
         }
-        .button.red {
-            background: red;
+
+        .button-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        #btn {
+            width: min(80vw, 300px);
+            height: min(80vw, 300px);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px var(--color-shadow);
+            position: relative;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #btn.ready {
+            background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-hover) 100%);
+        }
+
+        #btn.ready:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 15px var(--color-shadow);
+        }
+
+        #btn.active {
+            background: linear-gradient(135deg, var(--color-active) 0%, var(--color-active-hover) 100%);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        #btn.loading {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            position: absolute;
+        }
+
+        #btn.loading .spinner {
+            display: block;
+        }
+
+        #btn.loading .btn-text {
+            opacity: 0;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            min-height: 1.5rem;
+        }
+
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: var(--color-success);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--color-shadow);
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+        }
+
+        .install-prompt.show {
+            display: flex;
+        }
+
+        .install-btn {
+            background: white;
+            color: var(--color-success);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 2rem;
+            }
+            
+            #btn {
+                font-size: 1.5rem;
+            }
         }
     </style>
-    <title>Garage</title>
 </head>
-
-<body class="container">
-    <div class="container-fluid">
-
-        <div class="row">
-            <div class="col-12">
-                <h1 align="center">Garagentor</h1>
-            </div>
+<body>
+    <div class="container">
+        <h1>🚗 Garagentor</h1>
+        
+        <div class="button-container">
+            <button id="btn" class="ready">
+                <span class="btn-text">ÖFFNEN</span>
+                <div class="spinner"></div>
+            </button>
         </div>
-
-        <div class="row">
-            <div class="col-12">
-
-                <div id="btn" class="button green">START</div>
-
-            </div>
-        </div>
-
+        
+        <div class="status" id="status"></div>
     </div>
+
+    <div class="install-prompt" id="installPrompt">
+        <span>Als App installieren?</span>
+        <button class="install-btn" id="installBtn">Installieren</button>
+    </div>
+
+    <script>
+        const JWT_TOKEN = '<%= token %>';
+        let isActive = false;
+        let deferredPrompt = null;
+
+        // PWA Install Prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').classList.add('show');
+        });
+
+        document.getElementById('installBtn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                document.getElementById('installPrompt').classList.remove('show');
+            }
+        });
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {
+                console.log('Service Worker registration failed');
+            });
+        }
+
+        // Haptic Feedback
+        function vibrate(pattern = 50) {
+            if ('vibrate' in navigator) {
+                navigator.vibrate(pattern);
+            }
+        }
+
+        // Status Messages
+        function setStatus(message, duration = 3000) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            if (duration > 0) {
+                setTimeout(() => {
+                    status.textContent = '';
+                }, duration);
+            }
+        }
+
+        // Garage Door Action
+        async function triggerGarage() {
+            if (isActive) return;
+            
+            isActive = true;
+            const btn = document.getElementById('btn');
+            const btnText = btn.querySelector('.btn-text');
+            
+            btn.classList.remove('ready');
+            btn.classList.add('loading');
+            btnText.textContent = 'SENDE...';
+            
+            vibrate(50);
+
+            try {
+                const response = await fetch('/action', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token: JWT_TOKEN })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    btn.classList.remove('loading');
+                    btn.classList.add('active');
+                    btnText.textContent = 'AKTIV';
+                    vibrate([100, 50, 100]);
+                    setStatus('✓ Garagentor wird bewegt');
+
+                    setTimeout(() => {
+                        btn.classList.remove('active');
+                        btn.classList.add('ready');
+                        btnText.textContent = 'ÖFFNEN';
+                        isActive = false;
+                    }, 2000);
+                } else {
+                    throw new Error(data.error || 'Unbekannter Fehler');
+                }
+            } catch (error) {
+                btn.classList.remove('loading', 'active');
+                btn.classList.add('ready');
+                btnText.textContent = 'FEHLER';
+                vibrate([200, 100, 200]);
+                setStatus('✗ ' + error.message, 5000);
+                
+                setTimeout(() => {
+                    btnText.textContent = 'ÖFFNEN';
+                    isActive = false;
+                }, 2000);
+            }
+        }
+
+        // Button Event Listener
+        document.getElementById('btn').addEventListener('click', triggerGarage);
+
+        // Prevent double-tap zoom on button
+        let lastTouchEnd = 0;
+        document.getElementById('btn').addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Online/Offline Status
+        window.addEventListener('online', () => setStatus('✓ Verbunden'));
+        window.addEventListener('offline', () => setStatus('✗ Offline', 0));
+    </script>
 </body>
-
-<script>
-window.isActive = false;
-var pathArray = window.location.pathname.split('/');
-var URL = pathArray[1];
-$('#btn').click(() => {
-    if (window.isActive){
-        stopAction();
-    } else {
-        startAction();
-    }
-});
-
-const stopAction = () => {
-    $.ajax({
-        url: "/action/"+URL
-    }).done(function() {
-        window.isActive = false;
-        $('#btn').removeClass("red");
-        $('#btn').addClass("green");
-        $('#btn').html("START");
-    });
-}
-
-const startAction = () => {
-    window.isActive = true;
-    $('#btn').removeClass("green");
-    $('#btn').addClass("red");
-    $('#btn').html("STOP");
-    $.ajax({
-        url: "/action/"+URL
-    }).done(function() {
-        setTimeout(() => {
-            $('#btn').removeClass("red");
-            $('#btn').addClass("green");
-            $('#btn').html("START");
-        }, 500);
-    });
-}
-
-</script>
-
 </html>
 
 

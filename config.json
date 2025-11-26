@@ -1,0 +1,31 @@
+{
+  "apiKey": "<<FillAPIKey>>",
+  "port": 8000,
+  "ssl": {
+    "keyPath": "/path/to/privkey.pem",
+    "certPath": "/path/to/fullchain.pem"
+  },
+  "doors": [
+    {
+      "id": "door1",
+      "name": "Garagentor 1",
+      "gpio": 538,
+      "physicalPin": 538,
+      "bcmGpio": 26,
+      "activationTime": 500
+    },
+    {
+      "id": "door2",
+      "name": "Garagentor 2",
+      "gpio": 532,
+      "physicalPin": 532,
+      "bcmGpio": 20,
+      "activationTime": 500
+    }
+  ],
+  "rateLimiting": {
+    "windowMs": 900000,
+    "maxRequests": 100,
+    "maxActionsPerMinute": 10
+  }
+}

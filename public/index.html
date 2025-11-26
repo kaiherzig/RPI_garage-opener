@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Garage">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="description" content="Garagentor Steuerung">
+    
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    
+    <title>Garagentor Steuerung</title>
+    
+    <style>
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #1a1a1a;
+            --color-card-bg: #f8f9fa;
+            --color-success: #22c55e;
+            --color-success-hover: #16a34a;
+            --color-active: #ef4444;
+            --color-active-hover: #dc2626;
+            --color-shadow: rgba(0, 0, 0, 0.08);
+            --color-border: #e5e7eb;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-bg: #0f0f0f;
+                --color-text: #ffffff;
+                --color-card-bg: #1a1a1a;
+                --color-success: #22c55e;
+                --color-success-hover: #16a34a;
+                --color-active: #ef4444;
+                --color-active-hover: #dc2626;
+                --color-shadow: rgba(0, 0, 0, 0.4);
+                --color-border: #2a2a2a;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--color-bg);
+            color: var(--color-text);
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            transition: background-color 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0 30px;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .doors-grid {
+            display: grid;
+            gap: 20px;
+            flex: 1;
+            align-content: start;
+        }
+
+        @media (min-width: 600px) {
+            .doors-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .door-card {
+            background: var(--color-card-bg);
+            border: 2px solid var(--color-border);
+            border-radius: 20px;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .door-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .door-info {
+            font-size: 0.85rem;
+            opacity: 0.6;
+            text-align: center;
+        }
+
+        .door-button {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 24px var(--color-shadow);
+            position: relative;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .door-button.ready {
+            background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-hover) 100%);
+        }
+
+        .door-button.ready:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 12px var(--color-shadow);
+        }
+
+        .door-button.active {
+            background: linear-gradient(135deg, var(--color-active) 0%, var(--color-active-hover) 100%);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .door-button.loading {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .spinner {
+            display: none;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            position: absolute;
+        }
+
+        .door-button.loading .spinner {
+            display: block;
+        }
+
+        .door-button.loading .btn-text {
+            opacity: 0;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .status.success {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--color-success);
+            border: 2px solid var(--color-success);
+        }
+
+        .status.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--color-active);
+            border: 2px solid var(--color-active);
+        }
+
+        .status.info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 2px solid #3b82f6;
+        }
+
+        .status:empty {
+            display: none;
+        }
+
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: var(--color-success);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px var(--color-shadow);
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .install-prompt.show {
+            display: flex;
+        }
+
+        .install-btn {
+            background: white;
+            color: var(--color-success);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: transform 0.2s;
+        }
+
+        .install-btn:active {
+            transform: scale(0.95);
+        }
+
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--color-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-screen.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--color-border);
+            border-top-color: var(--color-success);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .door-button {
+                width: 120px;
+                height: 120px;
+                font-size: 1.1rem;
+            }
+
+            .door-card {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loader"></div>
+        <p style="margin-top: 20px; opacity: 0.7;">Lade Konfiguration...</p>
+    </div>
+
+    <div class="container" style="display: none;" id="mainContent">
+        <header>
+            <h1>🚗 Garagentor Steuerung</h1>
+        </header>
+
+        <div class="doors-grid" id="doorsGrid"></div>
+
+        <div class="status" id="status"></div>
+    </div>
+
+    <div class="install-prompt" id="installPrompt">
+        <span>📱 Als App installieren?</span>
+        <button class="install-btn" id="installBtn">Installieren</button>
+    </div>
+
+    <script>
+        // ===== Configuration =====
+        let JWT_TOKEN = null;
+        let DOORS = [];
+        const API_KEY = window.location.pathname.split('/')[1];
+
+        // ===== Initialize =====
+        async function init() {
+            try {
+                const response = await fetch(`/api/${API_KEY}/config`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Configuration load failed');
+                }
+
+                JWT_TOKEN = data.token;
+                DOORS = data.doors;
+
+                renderDoors();
+                
+                document.getElementById('loadingScreen').classList.add('hide');
+                document.getElementById('mainContent').style.display = 'flex';
+
+            } catch (error) {
+                showStatus(`Fehler: ${error.message}`, 'error', 0);
+                console.error('Init error:', error);
+            }
+        }
+
+        // ===== Render Doors =====
+        function renderDoors() {
+            const grid = document.getElementById('doorsGrid');
+            grid.innerHTML = '';
+
+            DOORS.forEach(door => {
+                const card = document.createElement('div');
+                card.className = 'door-card';
+                card.innerHTML = `
+                    <div class="door-name">${door.name}</div>
+                    <button class="door-button ready" id="btn-${door.id}" data-door-id="${door.id}">
+                        <span class="btn-text">ÖFFNEN</span>
+                        <div class="spinner"></div>
+                    </button>
+                    <div class="door-info">Pin ${door.physicalPin}</div>
+                `;
+                grid.appendChild(card);
+
+                // Add event listener
+                const button = card.querySelector('.door-button');
+                button.addEventListener('click', () => triggerDoor(door.id));
+            });
+        }
+
+        // ===== Door Control =====
+        async function triggerDoor(doorId) {
+            const button = document.getElementById(`btn-${doorId}`);
+            const btnText = button.querySelector('.btn-text');
+            
+            if (button.classList.contains('loading') || button.classList.contains('active')) {
+                return;
+            }
+
+            button.classList.remove('ready');
+            button.classList.add('loading');
+            btnText.textContent = 'SENDE...';
+            
+            vibrate(50);
+
+            try {
+                const response = await fetch(`/api/action/${doorId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token: JWT_TOKEN })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    button.classList.remove('loading');
+                    button.classList.add('active');
+                    btnText.textContent = 'AKTIV';
+                    vibrate([100, 50, 100]);
+                    showStatus(`✓ ${data.door} wird bewegt`, 'success', 3000);
+
+                    setTimeout(() => {
+                        button.classList.remove('active');
+                        button.classList.add('ready');
+                        btnText.textContent = 'ÖFFNEN';
+                    }, 2000);
+                } else {
+                    throw new Error(data.error || 'Unbekannter Fehler');
+                }
+            } catch (error) {
+                button.classList.remove('loading', 'active');
+                button.classList.add('ready');
+                btnText.textContent = 'FEHLER';
+                vibrate([200, 100, 200]);
+                showStatus(`✗ ${error.message}`, 'error', 5000);
+                
+                setTimeout(() => {
+                    btnText.textContent = 'ÖFFNEN';
+                }, 2000);
+            }
+        }
+
+        // ===== Helpers =====
+        function vibrate(pattern = 50) {
+            if ('vibrate' in navigator) {
+                navigator.vibrate(pattern);
+            }
+        }
+
+        function showStatus(message, type = 'info', duration = 3000) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            
+            if (duration > 0) {
+                setTimeout(() => {
+                    status.textContent = '';
+                    status.className = 'status';
+                }, duration);
+            }
+        }
+
+        // ===== PWA Support =====
+        let deferredPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').classList.add('show');
+        });
+
+        document.getElementById('installBtn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                document.getElementById('installPrompt').classList.remove('show');
+            }
+        });
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(err => {
+                console.log('Service Worker registration failed:', err);
+            });
+        }
+
+        // Online/Offline Status
+        window.addEventListener('online', () => showStatus('✓ Verbunden', 'success', 2000));
+        window.addEventListener('offline', () => showStatus('✗ Offline', 'error', 0));
+
+        // Prevent double-tap zoom
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // ===== Start App =====
+        init();
+    </script>
+</body>
+</html>
